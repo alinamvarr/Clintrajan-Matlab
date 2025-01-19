@@ -2,59 +2,89 @@
 This repository demonstrates how to integrate the ClinTrajan (ElPiGraph-based) Python pipeline within MATLAB. The MATLAB code automatically writes temporary Python scripts, calls them via the system shell, and then reads back the results.
 
 
-## Contents
+# README
+
+This repository contains MATLAB functions that call Python scripts to perform Elastic Principal Graph computations and other downstream analyses. The main files include:
 
 1. **`compute_tree_from_python.m`**  
-   Builds an elastic principal tree from data `X` using ElPiGraph in Python.
-
-2. **`partition_data_from_python.m`**  
-   Partitions data points among the branches of the tree.
-
-3. **`extract_trajectories_from_python.m`**  
-   Extracts shortest-path trajectories (0-based) from a given root node to each leaf.
-
+2. **`extract_trajectories_from_python.m`**  
+3. **`partition_data_from_python.m`**  
 4. **`project_on_tree_from_python.m`**  
-   Projects each data point onto the tree edges, returning `ProjStruct` with distances and edge IDs.
+5. **`quantify_pseudotime_from_python.m`**
 
-5. **`quantify_pseudotime_from_python.m`**  
-   Computes pseudotime for each point along each trajectory, assuming **0-based** indexing.
+Each file creates a temporary Python script and then **calls Python** via a `system()` command.
 
+---
 
+## Requirements
 
-## Usage
+- **MATLAB** R2019a or newer (earlier versions might require different syntax).
+- **Python** 3.x installation (Anaconda/Miniconda recommended).
+- **ElPiGraph** library installed (e.g., `pip install elpigraph`).
+- **igraph** Python package installed (e.g., `pip install igraph`).
+- Additional Python dependencies: `numpy`, `scipy`, `pandas`, etc. as required.
 
-A typical workflow in MATLAB:
+---
 
+## Setup
+### 1. Update the MATLAB `command` lines for Python calls
+
+Each `.m` file has a line like:
 ```matlab
-% 1) Build the tree
-tree_elpi = compute_tree_from_python(X, 'nnodes', 50);
+command = sprintf('/opt/anaconda3/bin/python %s %s %s', script_file, input_file, output_file);
+```
+For **Windows users**, you should edit these lines to reflect your Anaconda (or Miniconda) path. For example:
+% Example change on Windows:
+```matlab
+command = sprintf('"C:\\Users\\YourName\\anaconda3\\python.exe" "%s" "%s" "%s"', ...
+    script_file, input_file, output_file);
+```
 
-% 2) Partition data by branch
-[branches, partition] = partition_data_from_python(X, tree_elpi);
+## Usage Example
+In MATLAB:
+```matlab
+% Suppose X is your data matrix (e.g., 1000 x 2):
+X = randn(1000, 2);
 
-% 3) Extract 0-based trajectories from a chosen 0-based root
-root_node = 0;  % e.g., node #0
-[all_traj, all_traj_edges] = extract_trajectories_from_python(tree_elpi, root_node);
+% 1) Compute an elastic principal tree:
+tree_elpi = compute_tree_from_python(X, ...
+    'nnodes', 50, ...
+    'alpha', 0.01, ...
+    'Mu', 0.1, ...
+    'Lambda', 0.05, ...
+    'FinalEnergy', 'Penalized', ...
+    'Do_PCA', true);
 
-% 4) Project data points onto the tree
+% 2) Partition data by branches
+[vec_labels_by_branches, partition_by_node] = partition_data_from_python(X, tree_elpi);
+
+% 3) Extract trajectories (root_node is 0-based)
+root_node = 8;
+[all_trajectories, all_trajectories_edges] = extract_trajectories_from_python(tree_elpi, root_node);
+
+% 4) Project data onto the tree
 ProjStruct = project_on_tree_from_python(X, tree_elpi);
 
-% 5) Quantify pseudotime (still 0-based)
-PseudoTimeTraj = quantify_pseudotime_from_python(all_traj, all_traj_edges, ProjStruct);
+% 5) Quantify pseudotime along each trajectory
+PseudoTimeTraj = quantify_pseudotime_from_python(all_trajectories, all_trajectories_edges, ProjStruct);
 
-% 6) Build a table of point->branch->pseudotime, etc.
-T = save_point_projections_in_table_0based(branches, PseudoTimeTraj, 'results.txt');
+% Now you can explore PseudoTimeTraj, partition results, etc.
 ```
 
-### Notes
-All edges, node IDs, and trajectories are 0-based in this pipeline.
-If you prefer 1-based indexing in MATLAB for convenience, you can add or subtract 1 in each step—but ensure consistency everywhere.
+## Common Issues
+**Path Not Found**: If you see an error like 'python' is not recognized on Windows, then ensure:
 
-### Windows users
-On Windows, you may need to specify the path to your Python interpreter differently, for example:
+You replaced the default path with "C:\\Users\\<YourName>\\anaconda3\\python.exe" (escaped backslashes).
+Or that your path to python is on the system PATH.
 
-```matlab
-command = sprintf('"%s" %s %s %s', ...
-    'C:\\Users\\YourName\\anaconda3\\python.exe', script_file, input_file, output_file);
-[status, cmdout] = system(command);
-```
+**Missing Python Packages**:
+Install required packages with pip install elpigraph numpy scipy pandas igraph (or use conda install equivalents if you prefer conda).
+
+**Permission Errors**:
+Make sure the folder containing your .m scripts is writable, so the temporary .py files can be created.
+
+
+## Acknowledgments
+
+- [ClinTrajan GitHub Repository](https://github.com/auranic/ClinTrajan)
+
