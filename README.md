@@ -44,7 +44,7 @@ PseudoTimeTraj = quantify_pseudotime_from_python(all_traj, all_traj_edges, ProjS
 
 % 6) Build a table of point->branch->pseudotime, etc.
 T = save_point_projections_in_table_0based(branches, PseudoTimeTraj, 'results.txt');
-,,,
+```
 
 ### Notes
 All edges, node IDs, and trajectories are 0-based in this pipeline.
@@ -57,4 +57,4 @@ On Windows, you may need to specify the path to your Python interpreter differen
 command = sprintf('"%s" %s %s %s', ...
     'C:\\Users\\YourName\\anaconda3\\python.exe', script_file, input_file, output_file);
 [status, cmdout] = system(command);
-,,,
+```
