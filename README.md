@@ -36,8 +36,8 @@ command = sprintf('/opt/anaconda3/bin/python %s %s %s', script_file, input_file,
 For **Windows users**, you should edit these lines to reflect your Anaconda (or Miniconda) path. For example:
 % Example change on Windows:
 ```matlab
-command = sprintf('"C:\\Users\\YourName\\anaconda3\\python.exe" "%s" "%s" "%s"', ...
-    script_file, input_file, output_file);
+command = sprintf('"%s\\Scripts\\python.exe" "%s" "%s" "%s"', ...
+    'C:\Users\namvar\anaconda', script_file, input_file, output_file);
 ```
 
 ## Usage Example
