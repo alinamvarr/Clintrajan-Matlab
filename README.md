@@ -37,7 +37,7 @@ For **Windows users**, you should edit these lines to reflect your Anaconda (or 
 % Example change on Windows:
 ```matlab
 command = sprintf('"%s" "%s" "%s" "%s"', ...
-    'C:\Users\namvar\anaconda\python.exe', script_file, input_file, output_file);
+    'C:\Users\YourName\anaconda\python.exe', script_file, input_file, output_file);
 [status, commandOutput] = system(command);
 ```
 
